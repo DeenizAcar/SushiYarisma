@@ -1,0 +1,464 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#eef6fd">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Sushi Yarışı</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍣</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f6f4f1; --card: #ffffff; --ink: #2b2b33; --muted: #8a8a96;
+    --soft: #eceaf2; --accent: #9aa0c8; --accent-ink: #3f4570; --tint: #f1f1f8;
+    --danger: #e0707a;
+    --radius: 20px;
+  }
+  body[data-theme="blue"]  { --bg:#eef6fd; --accent:#8cc0ec; --accent-ink:#2f5f8a; --tint:#dcecfa; --soft:#e3eef8; }
+  body[data-theme="pink"]  { --bg:#fdf0f5; --accent:#f2a7c3; --accent-ink:#9a3f63; --tint:#fbdde9; --soft:#f8e4ec; }
+  body[data-theme="green"] { --bg:#effaf0; --accent:#98d4a2; --accent-ink:#2f7440; --tint:#d9f1dc; --soft:#e3f3e5; }
+  body[data-theme="lav"]   { --bg:#f4f1fc; --accent:#b9a8ea; --accent-ink:#5a4796; --tint:#e6dff9; --soft:#ebe6f8; }
+  body[data-theme="peach"] { --bg:#fff4ec; --accent:#f6bc95; --accent-ink:#94522a; --tint:#fde3d2; --soft:#f9e9de; }
+  body[data-theme="yellow"]{ --bg:#fffbea; --accent:#efd77a; --accent-ink:#7c6514; --tint:#fbf0c4; --soft:#f6efd4; }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; }
+  body {
+    font-family: "Fredoka", system-ui, -apple-system, sans-serif;
+    background: var(--bg); color: var(--ink);
+    min-height: 100dvh; transition: background .3s;
+    padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+  }
+  button { font: inherit; color: inherit; border: 0; background: none; cursor: pointer; }
+  input, select { font: inherit; }
+  .wrap { max-width: 520px; margin: 0 auto; padding: 16px 16px 120px; }
+
+  /* ---------- who screen ---------- */
+  #who { min-height: 100dvh; display: flex; flex-direction: column; justify-content: center; padding: 24px 20px; max-width: 520px; margin: 0 auto; }
+  #who h1 { font-size: 34px; margin: 0 0 4px; text-align: center; }
+  #who p { text-align: center; color: var(--muted); margin: 0 0 28px; font-size: 18px; }
+  .who-list { display: grid; gap: 14px; }
+  .who-btn {
+    display: flex; align-items: center; gap: 16px; padding: 20px 22px;
+    border-radius: 24px; font-size: 26px; font-weight: 600; text-align: left;
+    box-shadow: 0 4px 0 rgba(0,0,0,.06); transition: transform .08s;
+  }
+  .who-btn:active { transform: scale(.97); }
+  .who-btn .dot { width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; font-size: 24px; background: rgba(255,255,255,.6); }
+
+  /* ---------- header ---------- */
+  header { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
+  header h1 { font-size: 24px; margin: 0; display: flex; align-items: center; gap: 8px; }
+  .me-chip { background: var(--accent); color: var(--accent-ink); padding: 8px 14px; border-radius: 999px; font-weight: 600; font-size: 15px; white-space: nowrap; }
+  .sync { font-size: 12px; color: var(--muted); display: inline-flex; align-items: center; gap: 5px; }
+  .sync i { width: 8px; height: 8px; border-radius: 50%; background: #bbb; display: inline-block; }
+  .sync.live i { background: #4cc46a; box-shadow: 0 0 0 3px rgba(76,196,106,.2); }
+
+  /* ---------- leaderboard ---------- */
+  .board { background: var(--card); border-radius: var(--radius); padding: 14px; margin-bottom: 16px; box-shadow: 0 2px 0 rgba(0,0,0,.04); }
+  .board h2 { margin: 0 0 10px; font-size: 15px; color: var(--muted); font-weight: 500; letter-spacing: .3px; }
+  .rank { display: grid; grid-template-columns: 28px 1fr auto; align-items: center; gap: 10px; padding: 6px 0; }
+  .rank .pos { font-size: 18px; text-align: center; }
+  .rank .nm { font-weight: 600; font-size: 17px; }
+  .rank .bar { height: 8px; border-radius: 99px; background: var(--soft); margin-top: 4px; overflow: hidden; }
+  .rank .bar b { display: block; height: 100%; border-radius: 99px; transition: width .4s; }
+  .rank .pts { font-weight: 700; font-size: 22px; min-width: 44px; text-align: right; }
+  .rank .pts small { display: block; font-size: 11px; color: var(--muted); font-weight: 400; }
+
+  /* ---------- person card ---------- */
+  .person { background: var(--card); border-radius: var(--radius); margin-bottom: 14px; overflow: hidden; box-shadow: 0 2px 0 rgba(0,0,0,.04); }
+  .person-head { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; }
+  .person-head .left { display: flex; align-items: center; gap: 10px; }
+  .person-head .av { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; color: rgba(0,0,0,.55); }
+  .person-head .name { font-size: 20px; font-weight: 600; }
+  .person-head .you { font-size: 11px; background: var(--tint); color: var(--accent-ink); border-radius: 99px; padding: 2px 8px; margin-left: 4px; font-weight: 600; }
+  .person-head .score { font-size: 22px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+  .person-head .chev { font-size: 14px; color: var(--muted); transition: transform .2s; }
+  .person.open .chev { transform: rotate(180deg); }
+  .rows { display: none; padding: 0 10px 10px; }
+  .person.open .rows { display: block; }
+  .row { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; padding: 8px 6px; border-top: 1px solid var(--soft); }
+  .row .lbl { font-size: 17px; font-weight: 500; line-height: 1.15; }
+  .row .lbl small { display: block; font-size: 12px; color: var(--muted); font-weight: 400; }
+  .ctr { display: flex; align-items: center; gap: 6px; }
+  .ctr .n { min-width: 34px; text-align: center; font-size: 22px; font-weight: 700; }
+  .ctr .minus { width: 42px; height: 42px; border-radius: 14px; background: var(--soft); font-size: 24px; color: var(--muted); }
+  .ctr .plus { width: 56px; height: 48px; border-radius: 16px; background: var(--accent); color: var(--accent-ink); font-size: 28px; font-weight: 600; box-shadow: 0 3px 0 rgba(0,0,0,.08); }
+  .ctr button:active { transform: scale(.92); }
+  .ctr .minus:disabled { opacity: .35; }
+  .pop { animation: pop .25s; }
+  @keyframes pop { 50% { transform: scale(1.35); } }
+
+  /* ---------- edit ---------- */
+  .edit-toggle { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(16px + env(safe-area-inset-bottom)); background: var(--ink); color: #fff; padding: 12px 20px; border-radius: 999px; font-weight: 600; box-shadow: 0 6px 20px rgba(0,0,0,.18); z-index: 5; }
+  .sheet { background: var(--card); border-radius: var(--radius); padding: 16px; margin-bottom: 14px; display: none; }
+  .sheet.show { display: block; }
+  .sheet h3 { margin: 4px 0 10px; font-size: 18px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+  .chip { background: var(--soft); border-radius: 999px; padding: 6px 6px 6px 12px; display: inline-flex; align-items: center; gap: 6px; font-size: 15px; }
+  .chip button { width: 26px; height: 26px; border-radius: 50%; background: #fff; color: var(--danger); font-weight: 700; }
+  .add { display: flex; gap: 8px; margin-bottom: 18px; }
+  .add input { flex: 1; min-width: 0; padding: 12px 14px; border-radius: 14px; border: 2px solid var(--soft); background: #fff; font-size: 16px; outline: none; }
+  .add input:focus { border-color: var(--accent); }
+  .add select { padding: 0 8px; border-radius: 14px; border: 2px solid var(--soft); background: #fff; font-size: 15px; }
+  .add button { padding: 0 16px; border-radius: 14px; background: var(--accent); color: var(--accent-ink); font-weight: 600; }
+  .danger-btn { width: 100%; padding: 12px; border-radius: 14px; background: #fde8ea; color: #b0404c; font-weight: 600; margin-top: 4px; }
+  .hint { font-size: 13px; color: var(--muted); margin: -6px 0 14px; }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body data-theme="lav">
+
+<section id="who" class="hidden">
+  <h1>🍣 Sushi Yarışı</h1>
+  <p>Kimsin?</p>
+  <div class="who-list" id="whoList"></div>
+</section>
+
+<main id="app" class="wrap hidden">
+  <header>
+    <div>
+      <h1>🍣 Sushi Yarışı</h1>
+      <span class="sync" id="sync"><i></i><span>bağlanıyor…</span></span>
+    </div>
+    <button class="me-chip" id="meChip" title="Kişi değiştir"></button>
+  </header>
+
+  <section class="board">
+    <h2>SKOR TABLOSU</h2>
+    <div id="board"></div>
+  </section>
+
+  <section class="sheet" id="sheet">
+    <h3>Kişiler</h3>
+    <div class="chips" id="peopleChips"></div>
+    <form class="add" id="addPerson">
+      <input id="personName" placeholder="Yeni kişi adı" maxlength="20" autocomplete="off">
+      <button>Ekle</button>
+    </form>
+
+    <h3>Yiyecekler</h3>
+    <div class="chips" id="itemChips"></div>
+    <form class="add" id="addItem">
+      <input id="itemName" placeholder="Yeni yiyecek" maxlength="24" autocomplete="off">
+      <select id="itemPts" aria-label="Puan">
+        <option value="1">1 puan</option>
+        <option value="2">2 puan</option>
+        <option value="3">3 puan</option>
+        <option value="5">5 puan</option>
+      </select>
+      <button>Ekle</button>
+    </form>
+
+    <button class="danger-btn" id="resetBtn">Tüm sayaçları sıfırla</button>
+  </section>
+
+  <div id="people"></div>
+</main>
+
+<button class="edit-toggle hidden" id="editToggle">⚙️ Düzenle</button>
+
+<script>
+(() => {
+  const API = "/api/state";
+  const LS = "sushi-yarisma-v1";
+  const ME = "sushi-yarisma-me";
+
+  const THEMES = { deniz: "blue", guzin: "pink", duru: "green" };
+  const EXTRA = ["lav", "peach", "yellow"];
+  const SWATCH = { blue: "#bfdcf5", pink: "#f9d0e0", green: "#c8ebcd", lav: "#ddd3f6", peach: "#fbd9c3", yellow: "#f7eab0" };
+  const EMOJI = { deniz: "🐳", guzin: "🌸", duru: "🍀" };
+
+  function defaultState() {
+    return {
+      v: 0,
+      people: [
+        { id: "deniz", name: "Deniz" },
+        { id: "guzin", name: "Güzin" },
+        { id: "duru", name: "Duru" },
+      ],
+      items: [
+        { id: "karides", name: "Karides", pts: 1 },
+        { id: "karides-cipsi", name: "Karides cipsi", pts: 1 },
+        { id: "kalamar", name: "Kalamar", pts: 1 },
+        { id: "noodle", name: "Noodle (tabak)", pts: 3 },
+        { id: "yengec-topu", name: "Yengeç topu", pts: 1 },
+        { id: "cin-boregi", name: "Çin böreği", pts: 1 },
+        { id: "sushi", name: "Sushi", pts: 1 },
+      ],
+      counts: {},
+    };
+  }
+
+  // Same rules as the server function
+  function applyOp(s, op) {
+    switch (op.t) {
+      case "inc": {
+        if (!s.people.some(p => p.id === op.p) || !s.items.some(i => i.id === op.i)) return;
+        const c = (s.counts[op.p] ||= {});
+        c[op.i] = Math.max(0, (c[op.i] || 0) + op.d);
+        return;
+      }
+      case "addPerson":
+        if (!s.people.some(p => p.id === op.id)) s.people.push({ id: op.id, name: op.name });
+        return;
+      case "removePerson":
+        s.people = s.people.filter(p => p.id !== op.id); delete s.counts[op.id]; return;
+      case "addItem":
+        if (!s.items.some(i => i.id === op.id)) s.items.push({ id: op.id, name: op.name, pts: op.pts });
+        return;
+      case "removeItem":
+        s.items = s.items.filter(i => i.id !== op.id);
+        for (const p in s.counts) delete s.counts[p][op.id];
+        return;
+      case "reset": s.counts = {}; return;
+    }
+  }
+
+  // ---------- state & sync ----------
+  let server = defaultState();
+  let pending = [];
+  let inflight = null;
+  let online = false;
+  let me = null;
+  const openCards = new Set();
+
+  try {
+    const saved = JSON.parse(localStorage.getItem(LS) || "null");
+    if (saved?.server) server = saved.server;
+    if (Array.isArray(saved?.pending)) pending = saved.pending;
+  } catch {}
+  try { me = localStorage.getItem(ME); } catch {}
+
+  function persist() {
+    try { localStorage.setItem(LS, JSON.stringify({ server, pending: [...(inflight || []), ...pending] })); } catch {}
+  }
+
+  function view() {
+    const s = structuredClone(server);
+    for (const op of [...(inflight || []), ...pending]) applyOp(s, op);
+    return s;
+  }
+
+  function setOnline(v) {
+    online = v;
+    const el = document.getElementById("sync");
+    el.classList.toggle("live", v);
+    el.lastElementChild.textContent = v ? "canlı · herkes aynı skoru görüyor" : "çevrimdışı · bu telefonda kayıtlı";
+  }
+
+  async function flush() {
+    if (inflight || !pending.length) return;
+    inflight = pending; pending = [];
+    try {
+      const r = await fetch(API, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ops: inflight }) });
+      if (!r.ok) throw new Error(r.status);
+      server = await r.json();
+      inflight = null;
+      setOnline(true);
+    } catch {
+      pending = [...inflight, ...pending];
+      inflight = null;
+      setOnline(false);
+      setTimeout(flush, 3000);
+    }
+    persist(); render();
+    if (pending.length) flush();
+  }
+
+  async function poll() {
+    if (inflight || pending.length || document.hidden) return;
+    try {
+      const r = await fetch(API, { cache: "no-store" });
+      if (!r.ok) throw new Error(r.status);
+      const data = await r.json();
+      if (inflight || pending.length) return;
+      if ((data.v || 0) >= (server.v || 0) || !online) { server = data; persist(); render(); }
+      setOnline(true);
+    } catch { setOnline(false); }
+  }
+
+  function send(op) {
+    pending.push(op);
+    persist(); render(); flush();
+  }
+
+  const uid = () => Math.random().toString(36).slice(2, 9);
+
+  // ---------- helpers ----------
+  function themeOf(id, s) {
+    if (THEMES[id]) return THEMES[id];
+    const extras = s.people.filter(p => !THEMES[p.id]);
+    const idx = Math.max(0, extras.findIndex(p => p.id === id));
+    return EXTRA[idx % EXTRA.length];
+  }
+  function score(s, pid) {
+    const c = s.counts[pid] || {};
+    let pts = 0, pieces = 0;
+    for (const it of s.items) { const n = c[it.id] || 0; pts += n * it.pts; pieces += n; }
+    return { pts, pieces };
+  }
+  const esc = str => String(str).replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+
+  // ---------- who screen ----------
+  function showWho() {
+    const s = view();
+    document.body.dataset.theme = "lav";
+    document.getElementById("who").classList.remove("hidden");
+    document.getElementById("app").classList.add("hidden");
+    document.getElementById("editToggle").classList.add("hidden");
+    document.getElementById("whoList").innerHTML = s.people.map(p => `
+      <button class="who-btn" data-id="${esc(p.id)}" style="background:${SWATCH[themeOf(p.id, s)]}">
+        <span class="dot">${EMOJI[p.id] || esc(p.name[0].toUpperCase())}</span>${esc(p.name)}
+      </button>`).join("");
+  }
+  document.getElementById("whoList").addEventListener("click", e => {
+    const b = e.target.closest(".who-btn"); if (!b) return;
+    me = b.dataset.id;
+    try { localStorage.setItem(ME, me); } catch {}
+    openCards.clear(); openCards.add(me);
+    showApp();
+  });
+  document.getElementById("meChip").addEventListener("click", showWho);
+
+  function showApp() {
+    document.getElementById("who").classList.add("hidden");
+    document.getElementById("app").classList.remove("hidden");
+    document.getElementById("editToggle").classList.remove("hidden");
+    render();
+  }
+
+  // ---------- render ----------
+  function render() {
+    if (document.getElementById("app").classList.contains("hidden")) {
+      if (!document.getElementById("who").classList.contains("hidden")) showWho();
+      return;
+    }
+    const s = view();
+    const meP = s.people.find(p => p.id === me);
+    const theme = themeOf(me, s);
+    document.body.dataset.theme = theme;
+    document.querySelector('meta[name="theme-color"]').content = getComputedStyle(document.body).getPropertyValue("--bg").trim();
+    document.getElementById("meChip").textContent = (meP ? meP.name : "Kim?") + " ⇄";
+
+    // leaderboard
+    const ranked = s.people.map(p => ({ p, ...score(s, p.id) })).sort((a, b) => b.pts - a.pts);
+    const max = Math.max(1, ...ranked.map(r => r.pts));
+    const medals = ["🥇", "🥈", "🥉"];
+    let lastPts = null, lastPos = 0;
+    document.getElementById("board").innerHTML = ranked.map((r, i) => {
+      const pos = r.pts === lastPts ? lastPos : i; lastPts = r.pts; lastPos = pos;
+      const medal = r.pts === 0 ? "·" : (medals[pos] || pos + 1);
+      return `<div class="rank">
+        <span class="pos">${medal}</span>
+        <div><div class="nm">${esc(r.p.name)}</div><div class="bar"><b style="width:${(r.pts / max) * 100}%;background:${SWATCH[themeOf(r.p.id, s)]}"></b></div></div>
+        <div class="pts">${r.pts}<small>${r.pieces} adet</small></div>
+      </div>`;
+    }).join("") || `<div class="hint">Kimse yok, düzenleden kişi ekle.</div>`;
+
+    // cards: me first
+    const order = [...s.people].sort((a, b) => (b.id === me) - (a.id === me));
+    document.getElementById("people").innerHTML = order.map(p => {
+      const c = s.counts[p.id] || {};
+      const sc = score(s, p.id);
+      const open = openCards.has(p.id);
+      return `<article class="person ${open ? "open" : ""}" data-p="${esc(p.id)}">
+        <button class="person-head" data-toggle="${esc(p.id)}">
+          <span class="left">
+            <span class="av" style="background:${SWATCH[themeOf(p.id, s)]}">${EMOJI[p.id] || esc(p.name[0].toUpperCase())}</span>
+            <span class="name">${esc(p.name)}</span>${p.id === me ? '<span class="you">sen</span>' : ""}
+          </span>
+          <span class="score">${sc.pts} <span class="chev">▼</span></span>
+        </button>
+        <div class="rows">
+          ${s.items.map(it => {
+            const n = c[it.id] || 0;
+            return `<div class="row">
+              <div class="lbl">${esc(it.name)}<small>${it.pts} puan</small></div>
+              <div class="ctr">
+                <button class="minus" data-p="${esc(p.id)}" data-i="${esc(it.id)}" data-d="-1" ${n ? "" : "disabled"} aria-label="azalt">−</button>
+                <span class="n" id="n-${esc(p.id)}-${esc(it.id)}">${n}</span>
+                <button class="plus" data-p="${esc(p.id)}" data-i="${esc(it.id)}" data-d="1" aria-label="artır">+</button>
+              </div>
+            </div>`;
+          }).join("") || `<div class="hint" style="padding:8px">Yiyecek yok, düzenleden ekle.</div>`}
+        </div>
+      </article>`;
+    }).join("");
+
+    // edit sheet
+    document.getElementById("peopleChips").innerHTML = s.people.map(p =>
+      `<span class="chip">${esc(p.name)}<button data-rmp="${esc(p.id)}" aria-label="çıkar">×</button></span>`).join("");
+    document.getElementById("itemChips").innerHTML = s.items.map(it =>
+      `<span class="chip">${esc(it.name)} · ${it.pts}p<button data-rmi="${esc(it.id)}" aria-label="çıkar">×</button></span>`).join("");
+  }
+
+  // ---------- events ----------
+  document.getElementById("people").addEventListener("click", e => {
+    const t = e.target.closest("[data-toggle]");
+    if (t) {
+      const id = t.dataset.toggle;
+      openCards.has(id) ? openCards.delete(id) : openCards.add(id);
+      render(); return;
+    }
+    const b = e.target.closest("button[data-d]");
+    if (!b || b.disabled) return;
+    const d = Number(b.dataset.d);
+    if (d > 0 && navigator.vibrate) navigator.vibrate(12);
+    send({ t: "inc", p: b.dataset.p, i: b.dataset.i, d });
+    const n = document.getElementById(`n-${b.dataset.p}-${b.dataset.i}`);
+    if (n) { n.classList.remove("pop"); void n.offsetWidth; n.classList.add("pop"); }
+  });
+
+  const sheet = document.getElementById("sheet");
+  document.getElementById("editToggle").addEventListener("click", () => {
+    const show = !sheet.classList.contains("show");
+    sheet.classList.toggle("show", show);
+    document.getElementById("editToggle").textContent = show ? "✓ Bitti" : "⚙️ Düzenle";
+    if (show) sheet.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+
+  document.getElementById("addPerson").addEventListener("submit", e => {
+    e.preventDefault();
+    const inp = document.getElementById("personName");
+    const name = inp.value.trim(); if (!name) return;
+    const id = "p-" + uid();
+    send({ t: "addPerson", id, name });
+    openCards.add(id);
+    inp.value = "";
+  });
+  document.getElementById("addItem").addEventListener("submit", e => {
+    e.preventDefault();
+    const inp = document.getElementById("itemName");
+    const name = inp.value.trim(); if (!name) return;
+    send({ t: "addItem", id: "i-" + uid(), name, pts: Number(document.getElementById("itemPts").value) });
+    inp.value = "";
+  });
+  document.getElementById("peopleChips").addEventListener("click", e => {
+    const b = e.target.closest("[data-rmp]"); if (!b) return;
+    const p = view().people.find(x => x.id === b.dataset.rmp);
+    if (p && confirm(`${p.name} çıkarılsın mı? Sayaçları da silinir.`)) send({ t: "removePerson", id: p.id });
+  });
+  document.getElementById("itemChips").addEventListener("click", e => {
+    const b = e.target.closest("[data-rmi]"); if (!b) return;
+    const it = view().items.find(x => x.id === b.dataset.rmi);
+    if (it && confirm(`"${it.name}" çıkarılsın mı? Herkesin bu sayacı silinir.`)) send({ t: "removeItem", id: it.id });
+  });
+  document.getElementById("resetBtn").addEventListener("click", () => {
+    if (confirm("Herkesin tüm sayaçları sıfırlansın mı?")) send({ t: "reset" });
+  });
+
+  // ---------- start ----------
+  if (me && view().people.some(p => p.id === me)) { openCards.add(me); showApp(); } else showWho();
+  setOnline(false);
+  document.getElementById("sync").lastElementChild.textContent = "bağlanıyor…";
+  poll(); flush();
+  setInterval(poll, 2000);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) { poll(); flush(); } });
+})();
+</script>
+</body>
+</html>
