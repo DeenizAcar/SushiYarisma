@@ -8,7 +8,6 @@ function defaultState() {
     people: [
       { id: "deniz", name: "Deniz" },
       { id: "guzin", name: "Güzin" },
-      { id: "duru", name: "Duru" },
     ],
     items: [
       { id: "karides", name: "Karides", pts: 1 },
@@ -21,6 +20,13 @@ function defaultState() {
     ],
     counts: {},
   };
+}
+
+// Duru kaldırıldı: kayıtlı veride kalmışsa da temizle
+function migrate(s) {
+  s.people = (s.people || []).filter((p) => p.id !== "duru");
+  if (s.counts) delete s.counts.duru;
+  return s;
 }
 
 function clean(str, max = 30) {
@@ -83,7 +89,7 @@ export default async (req) => {
 
   if (req.method === "GET") {
     const data = await store.get(KEY, { type: "json" });
-    return json(data ?? defaultState());
+    return json(migrate(data ?? defaultState()));
   }
 
   if (req.method === "POST") {
@@ -94,7 +100,7 @@ export default async (req) => {
     // read-modify-write with ETag check so simultaneous taps don't overwrite each other
     for (let attempt = 0; attempt < 10; attempt++) {
       const cur = await store.getWithMetadata(KEY, { type: "json" });
-      const state = cur?.data ?? defaultState();
+      const state = migrate(cur?.data ?? defaultState());
       for (const op of ops) applyOp(state, op);
       state.v = (state.v || 0) + 1;
       const res = await store.setJSON(

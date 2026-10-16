@@ -19,7 +19,6 @@
   }
   body[data-theme="blue"]  { --bg:#eef6fd; --accent:#8cc0ec; --accent-ink:#2f5f8a; --tint:#dcecfa; --soft:#e3eef8; }
   body[data-theme="pink"]  { --bg:#fdf0f5; --accent:#f2a7c3; --accent-ink:#9a3f63; --tint:#fbdde9; --soft:#f8e4ec; }
-  body[data-theme="green"] { --bg:#effaf0; --accent:#98d4a2; --accent-ink:#2f7440; --tint:#d9f1dc; --soft:#e3f3e5; }
   body[data-theme="lav"]   { --bg:#f4f1fc; --accent:#b9a8ea; --accent-ink:#5a4796; --tint:#e6dff9; --soft:#ebe6f8; }
   body[data-theme="peach"] { --bg:#fff4ec; --accent:#f6bc95; --accent-ink:#94522a; --tint:#fde3d2; --soft:#f9e9de; }
   body[data-theme="yellow"]{ --bg:#fffbea; --accent:#efd77a; --accent-ink:#7c6514; --tint:#fbf0c4; --soft:#f6efd4; }
@@ -167,10 +166,10 @@
   const LS = "sushi-yarisma-v1";
   const ME = "sushi-yarisma-me";
 
-  const THEMES = { deniz: "blue", guzin: "pink", duru: "green" };
+  const THEMES = { deniz: "blue", guzin: "pink" };
   const EXTRA = ["lav", "peach", "yellow"];
-  const SWATCH = { blue: "#bfdcf5", pink: "#f9d0e0", green: "#c8ebcd", lav: "#ddd3f6", peach: "#fbd9c3", yellow: "#f7eab0" };
-  const EMOJI = { deniz: "🐳", guzin: "🌸", duru: "🍀" };
+  const SWATCH = { blue: "#bfdcf5", pink: "#f9d0e0", lav: "#ddd3f6", peach: "#fbd9c3", yellow: "#f7eab0" };
+  const EMOJI = { deniz: "🐳", guzin: "🌸" };
 
   function defaultState() {
     return {
@@ -178,7 +177,6 @@
       people: [
         { id: "deniz", name: "Deniz" },
         { id: "guzin", name: "Güzin" },
-        { id: "duru", name: "Duru" },
       ],
       items: [
         { id: "karides", name: "Karides", pts: 1 },
@@ -232,6 +230,7 @@
     if (Array.isArray(saved?.pending)) pending = saved.pending;
   } catch {}
   try { me = localStorage.getItem(ME); } catch {}
+  if (me === "duru") me = null;
 
   function persist() {
     try { localStorage.setItem(LS, JSON.stringify({ server, pending: [...(inflight || []), ...pending] })); } catch {}
@@ -239,6 +238,7 @@
 
   function view() {
     const s = structuredClone(server);
+    s.people = s.people.filter(p => p.id !== "duru"); delete s.counts.duru;
     for (const op of [...(inflight || []), ...pending]) applyOp(s, op);
     return s;
   }
