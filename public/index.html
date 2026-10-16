@@ -88,6 +88,8 @@
   .ctr .plus { width: 56px; height: 48px; border-radius: 16px; background: var(--accent); color: var(--accent-ink); font-size: 28px; font-weight: 600; box-shadow: 0 3px 0 rgba(0,0,0,.08); }
   .ctr button:active { transform: scale(.92); }
   .ctr .minus:disabled { opacity: .35; }
+  .ctr .n.ro { min-width: 56px; padding-right: 14px; text-align: right; color: var(--muted); }
+  .readonly-note { font-size: 13px; color: var(--muted); padding: 2px 6px 8px; }
   .pop { animation: pop .25s; }
   @keyframes pop { 50% { transform: scale(1.35); } }
 
@@ -195,6 +197,7 @@
   function applyOp(s, op) {
     switch (op.t) {
       case "inc": {
+        if (op.by && op.by !== op.p) return;
         if (!s.people.some(p => p.id === op.p) || !s.items.some(i => i.id === op.i)) return;
         const c = (s.counts[op.p] ||= {});
         c[op.i] = Math.max(0, (c[op.i] || 0) + op.d);
@@ -374,8 +377,13 @@
           <span class="score">${sc.pts} <span class="chev">▼</span></span>
         </button>
         <div class="rows">
+          ${p.id !== me ? '<div class="readonly-note">Sadece görüntüleme · herkes kendi sayacını artırır</div>' : ""}
           ${s.items.map(it => {
             const n = c[it.id] || 0;
+            if (p.id !== me) return `<div class="row">
+              <div class="lbl">${esc(it.name)}<small>${it.pts} puan</small></div>
+              <div class="ctr"><span class="n ro">${n}</span></div>
+            </div>`;
             return `<div class="row">
               <div class="lbl">${esc(it.name)}<small>${it.pts} puan</small></div>
               <div class="ctr">
@@ -405,10 +413,10 @@
       render(); return;
     }
     const b = e.target.closest("button[data-d]");
-    if (!b || b.disabled) return;
+    if (!b || b.disabled || b.dataset.p !== me) return;
     const d = Number(b.dataset.d);
     if (d > 0 && navigator.vibrate) navigator.vibrate(12);
-    send({ t: "inc", p: b.dataset.p, i: b.dataset.i, d });
+    send({ t: "inc", p: b.dataset.p, i: b.dataset.i, d, by: me });
     const n = document.getElementById(`n-${b.dataset.p}-${b.dataset.i}`);
     if (n) { n.classList.remove("pop"); void n.offsetWidth; n.classList.add("pop"); }
   });

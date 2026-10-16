@@ -37,6 +37,7 @@ function applyOp(s, op) {
   if (!op || typeof op !== "object") return;
   switch (op.t) {
     case "inc": {
+      if (op.by !== op.p) return; // herkes sadece kendi sayacını değiştirebilir
       if (!s.people.some((p) => p.id === op.p)) return;
       if (!s.items.some((i) => i.id === op.i)) return;
       const d = Math.max(-50, Math.min(50, Number(op.d) || 0));
